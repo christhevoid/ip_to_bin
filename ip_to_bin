@@ -1,0 +1,156 @@
+#!/bin/bash
+
+generar_secuencia() {
+
+    local i=0
+
+    while [[ i -lt $num_rep ]]; do
+
+        echo $carac
+
+        let "i = i + 1"
+
+    done
+
+}
+
+valid_byte() {
+
+    IFS='.'
+
+    valid_code=""
+    valid_part=""
+
+    read -ra parts <<< "$ip"
+
+    for part in ${parts[@]}; do
+
+        valid_part=""
+
+        if [[ $part -le 255 ]]; then
+
+            valid_part=0
+            valid_code=$valid_code$valid_part
+            
+
+        else
+
+            valid_part=1
+            valid_code=$valid_code$valid_part
+
+        fi
+
+    done
+
+    #echo $valid_code
+
+    # valid_code debe ser 0000 para que sea correcto
+
+    validation=0000
+
+    if [[ $valid_code -eq $validation ]]; then
+
+        #echo IP correcto
+
+        echo 0: Correcto
+
+        uint_to_bin $parts
+
+    else
+
+        #echo Ip incorrecto
+        echo 1: Incorrecto
+
+    fi
+
+}
+
+valid_ip() {
+
+    local ip_regex="^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
+    
+    if [[ $ip =~ $ip_regex ]]; then
+
+        echo 0: La ip $ip es correcta
+
+        valid_byte $ip
+
+    else
+
+        echo 1: La ip $ip no es correcta
+        exit 1
+
+    fi
+
+
+}
+
+
+uint_to_bin() {
+
+    binary_part=""
+    binary_all=""
+    
+
+    for part in ${parts[@]}; do
+
+        num=$part
+
+        binary_part=""
+        
+        while [[ $num -gt 0 ]]; do
+
+            let "residuo = num % 2"
+
+            binary_part=$residuo$binary_part
+
+            let "num = num / 2"
+
+        done
+
+        # Para rellenar correctamente el binario a un byte de 8 bits
+        byte_to_bin $binary_part
+
+        echo "$part:$binary_part"
+
+        binary_all="$binary_all.$binary_part"
+
+
+    done
+
+    binary_all=${binary_all:1}
+
+    echo "$binary_all"
+
+}
+
+byte_to_bin() {
+
+    while [[ ${#binary_part} -lt 8 ]]; do
+
+        binary_part=0$binary_part
+
+    done
+
+    return $binary_part
+
+}
+
+
+echo -n "Introducir ip: "
+read -r ip
+
+if [[ $ip ]]; then
+
+    echo "IP introducida: $ip"
+
+    #valid_byte $ip
+
+    valid_ip $ip
+    
+else
+
+    echo "Error: Introducir una ip"
+    exit 1
+
+fi
